@@ -3,22 +3,12 @@ enyo.kind({
 	kind: "FittableRows",
 //	fit: true,
 //    classes: "enyo-fit",
-    names: [
-        "IP / CIDR Mask",
-        "Mask",
-        "Subnet ID",
-        "Broadcast",
-        "Wildcard Mask",
-        "Number of hosts",
-        "First IP",
-        "Last IP"
-    ],
     results: [],
 	components:[
 		{kind: "onyx.Toolbar", id: "app", components: [
-            {content: "Subnet Calculator"},
-            {fit: true},
-			{kind: "onyx.Button", content: "Install me", ontap: "installMeTap"}
+            {id: "title", content: "Subnet Calculator"},
+//            {fit: true},
+			{kind: "onyx.WebAppButton", id: "install-button"}
 		]},
 		{kind: "enyo.Scroller", touch:true, fit: true, components: [
             {kind: "onyx.Groupbox", classes:"box", components: [
@@ -31,16 +21,43 @@ enyo.kind({
                 ]},
                 {kind:"onyx.Button", content: "Calculate", classes: "onyx-dark calc-button", ontap:"calcTapped"}
             ]},
-            {kind: "onyx.Groupbox", classes:"box", components: [
+            {kind: "onyx.Groupbox", name: "c_results", classes:"box", components: [
                 {kind: "onyx.GroupboxHeader", content: "Results"},
-                {name: "repeater", kind: "Repeater", count: 8, onSetupItem: "setupItem", components: [
-                    {name: "item", classes: "list-item enyo-border-box", components: [
-                        {name: "title", classes: "list-title"},
-                        {name: "value", classes: "list-result"}
-                    ]}
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_ip", classes: "list-label", content: "IP / CIDR Mask"},
+                    {name: "r_ip", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_mask", classes: "list-label", content: "Mask"},
+                    {name: "r_mask", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_subnet", classes: "list-label", content: "Subnet ID"},
+                    {name: "r_subnet", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_broad", classes: "list-label", content: "Broadcast"},
+                    {name: "r_broad", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_wild", classes: "list-label", content: "Wildcard Mask"},
+                    {name: "r_wild", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_nb", classes: "list-label", content: "Number of hosts"},
+                    {name: "r_nb", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_first", classes: "list-label", content: "First IP"},
+                    {name: "r_first", classes: "list-result", content: ""}
+                ]},
+                {kind: "FittableColumns", classes: "list-item", components: [
+                    {name: "l_last", fit: true, classes: "list-label", content: "Last IP"},
+                    {name: "r_last", classes: "list-result", content: ""}
                 ]}
             ]}
-		]}
+		]},
+        {name: "popup", kind: "onyx.Popup", centered: true, floating: true, classes:"popup", content: ""},
 	],
     create: function() {
 		this.inherited(arguments);
@@ -48,13 +65,6 @@ enyo.kind({
 	installMeTap: function(inSender, inEvent) {
 		
 	},
-    setupItem: function(inSender, inEvent) {
-        var index = inEvent.index;
-        var item = inEvent.item;
-        item.$.title.setContent(this.names[index]);
-        item.$.value.setContent(this.results[index]);
-        return true;
-    },
     calcTapped: function(inSender, inEvent) {
 //        this.controller.get('error_msg').update("");
         var ip = this.$.ipInput.getValue();
@@ -66,17 +76,18 @@ enyo.kind({
             mask = result;
             nAddr = calculateIP(ip);
             nMask = calculateSubnet(mask);
-            this.results[0] = ip + " / " + octet2cidr(nMask);
-            this.results[1] = mask;
-            this.results[2] = subnetID(nAddr,nMask);
-            this.results[3] = broadcast(nAddr,wildcardMask(nMask).split(".", 4));
-            this.results[4] = wildcardMask(nMask);
-            this.results[4] = hostCount(nMask);
-//            this.results[6] = startingIP(ip, mask);
-//            this.results[7] = endingIP(ip, wildcardMask(nMask));
-            this.reflow();
+            this.$.r_ip.setContent(ip + " / " + octet2cidr(nMask));
+            this.$.r_mask.setContent(mask);
+            this.$.r_subnet.setContent(subnetID(nAddr,nMask));
+            this.$.r_broad.setContent(broadcast(nAddr,wildcardMask(nMask).split(".", 4)));
+            this.$.r_wild.setContent(wildcardMask(nMask));
+            this.$.r_nb.setContent(hostCount(nMask));
+            this.$.r_first.setContent(startingIP(ip, mask));
+            this.$.r_last.setContent(endingIP(ip, wildcardMask(nMask)));
         }
         else{
+            this.$.popup.setContent(result);
+            this.$.popup.show();
 //            this.controller.get('error_msg').update(result);
         }
     }
